@@ -25,6 +25,8 @@ flutter:
   - assets/icon2-wow.png
   - assets/icon3-wow.png
   - assets/background.png
+  - assets/Prambanan.jpeg
+  - assets/BULB.png
   fonts:
     - family: Galindo
       fonts:

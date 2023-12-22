@@ -30,7 +30,7 @@ class MenuPage extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.only(bottom: 230.0, left: 10.0), // Sesuaikan dengan kebutuhan Anda
+                    padding: EdgeInsets.only(bottom: 230.0, left: 10.0),
                     child: Text(
                       'Tebak \nGambar Nusantara',
                       style: TextStyle(

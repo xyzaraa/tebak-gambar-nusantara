@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:tebak_gambar_nusantara/app/modules/home/views/exercise_page.dart';
 
 void main() {
   runApp(GetMaterialApp(
@@ -16,6 +17,7 @@ class LevelPage extends StatefulWidget {
 
 class _LevelPageState extends State<LevelPage> {
   List<Map<String, String>> levels = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -31,9 +33,10 @@ class _LevelPageState extends State<LevelPage> {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
         levels = data.map((item) => {
-              'id': item['id'].toString(),
-              'level': item['level'].toString(),
-            }).toList();
+          'id': item['id'].toString(),
+          'level': item['level'].toString(),
+        }).toList();
+        isLoading = false;
       });
     } else {
       throw Exception('Failed to load levels');
@@ -44,44 +47,58 @@ class _LevelPageState extends State<LevelPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [
-                Color(0xFF301F40),
-                Color(0xFF46244C),
-              ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Color(0xFF301F40),
+                  Color(0xFF46244C),
+                ],
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(height: 60),
+                  Text(
+                    'Tentukan Levelmu!',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255),
+                      fontFamily: 'Galindo',
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Column(
+                    children: levels.map((level) {
+                      return buildLevelContainer(
+                        context,
+                        'Level ${level['level']}',
+                        getIconPath(int.parse(level['level']!)),
+                        () {
+                          Get.to(() =>
+                              ExercisePage(levelId: int.parse(level['id']!)));
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 60),
-              Text(
-                'Tentukan Levelmu!',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 255, 255, 255),
-                  fontFamily: 'Galindo',
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                ),
+          if (isLoading)
+            Container(
+              color: Colors.black,
+              child: Center(
+                child: CircularProgressIndicator(),
               ),
-              for (var level in levels)
-                buildLevelContainer(
-                  context,
-                  'Level ${level['level']}',
-                  getIconPath(int.parse(level['level']!)),
-                  () {
-                    // Menggunakan fungsi Get.to untuk navigasi ke ExercisePage dengan parameter level ID
-                    Get.to(() => ExercisePage(levelId: int.parse(level['id']!)));
-                  },
-                ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -91,8 +108,8 @@ class _LevelPageState extends State<LevelPage> {
     return 'assets/icon$iconIndex-wow.png';
   }
 
-  Widget buildLevelContainer(
-      BuildContext context, String level, String? imagePath, VoidCallback onPressed) {
+  Widget buildLevelContainer(BuildContext context, String level,
+      String? imagePath, VoidCallback onPressed) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
@@ -109,7 +126,7 @@ class _LevelPageState extends State<LevelPage> {
               child: Text(
                 level,
                 style: TextStyle(
-                  color: Color.fromRGBO(29, 17, 49, 0.78),
+                  color: Color.fromRGBO(40, 18, 75, 0.776),
                   fontFamily: 'Galindo',
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -133,16 +150,5 @@ class _LevelPageState extends State<LevelPage> {
         ),
       ),
     );
-  }
-}
-
-class ExercisePage extends StatelessWidget {
-  final int levelId;
-
-  ExercisePage({required this.levelId});
-
-  @override
-  Widget build(BuildContext context) {
-     return Container();
   }
 }

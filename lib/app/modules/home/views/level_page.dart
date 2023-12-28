@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:tebak_gambar_nusantara/app/modules/home/views/exercise_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'exercise_page.dart';
 
 void main() {
   runApp(GetMaterialApp(
@@ -18,11 +19,13 @@ class LevelPage extends StatefulWidget {
 class _LevelPageState extends State<LevelPage> {
   List<Map<String, String>> levels = [];
   bool isLoading = true;
+  int completedLevel = 0;
 
   @override
   void initState() {
     super.initState();
     fetchLevels();
+    _getCompletedLevel();
   }
 
   Future<void> fetchLevels() async {
@@ -31,16 +34,32 @@ class _LevelPageState extends State<LevelPage> {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
+
       setState(() {
-        levels = data.map((item) => {
-          'id': item['id'].toString(),
-          'level': item['level'].toString(),
-        }).toList();
+        levels = data
+            .map((item) => {
+                  'id': item['id'].toString(),
+                  'level': item['level'].toString(),
+                })
+            .toList();
+
         isLoading = false;
       });
     } else {
       throw Exception('Failed to load levels');
     }
+  }
+
+  Future<void> _getCompletedLevel() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      completedLevel = prefs.getInt('completedLevel') ?? 0;
+    });
+  }
+
+  Future<void> _refresh() async {
+    await fetchLevels();
+    _getCompletedLevel();
   }
 
   @override
@@ -50,7 +69,7 @@ class _LevelPageState extends State<LevelPage> {
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
@@ -60,41 +79,53 @@ class _LevelPageState extends State<LevelPage> {
                 ],
               ),
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(height: 60),
-                  Text(
-                    'Tentukan Levelmu!',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255),
-                      fontFamily: 'Galindo',
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    const Text(
+                      'Tentukan Levelmu!',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                        fontFamily: 'Galindo',
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Column(
-                    children: levels.map((level) {
-                      return buildLevelContainer(
-                        context,
-                        'Level ${level['level']}',
-                        getIconPath(int.parse(level['level']!)),
-                        () {
-                          Get.to(() =>
-                              ExercisePage(levelId: int.parse(level['id']!)));
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
+                    Column(
+                      children: levels.map((level) {
+                        bool isLevelEnabled =
+                            int.parse(level['level']!) == 1 ||
+                                int.parse(level['level']!) <=
+                                    completedLevel + 1;
+
+                        return buildLevelContainer(
+                          context,
+                          'Level ${level['level']}',
+                          getIconPath(int.parse(level['level']!)),
+                          () {
+                            if (isLevelEnabled) {
+                              Get.to(() => ExercisePage(
+                                  levelId: int.parse(level['id']!)));
+                            }
+                          },
+                          isLevelEnabled ? Colors.white : Colors.black,
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           if (isLoading)
             Container(
               color: Colors.black,
-              child: Center(
+              child: const Center(
                 child: CircularProgressIndicator(),
               ),
             ),
@@ -109,15 +140,15 @@ class _LevelPageState extends State<LevelPage> {
   }
 
   Widget buildLevelContainer(BuildContext context, String level,
-      String? imagePath, VoidCallback onPressed) {
+      String? imagePath, VoidCallback onPressed, Color levelColor) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 15, horizontal: 45),
+        margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 45),
         width: MediaQuery.of(context).size.width * 0.8,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: const Color(0xFFCDBDE7),
+          color: levelColor,
         ),
         child: Row(
           children: [
@@ -125,7 +156,7 @@ class _LevelPageState extends State<LevelPage> {
               padding: const EdgeInsets.all(10.0),
               child: Text(
                 level,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Color.fromRGBO(40, 18, 75, 0.776),
                   fontFamily: 'Galindo',
                   fontSize: 30,
@@ -143,7 +174,7 @@ class _LevelPageState extends State<LevelPage> {
                         width: 50,
                         height: 50,
                       )
-                    : SizedBox.shrink(),
+                    : const SizedBox.shrink(),
               ),
             ),
           ],

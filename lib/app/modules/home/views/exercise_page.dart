@@ -143,7 +143,8 @@ class ExercisePage extends StatelessWidget {
                             SizedBox(width: 10),
                             ElevatedButton(
                               onPressed: () {
-                                if (exerciseData['userAnswer'].toLowerCase() ==
+                                if (exerciseData['userAnswer']
+                                        .toLowerCase() ==
                                     exerciseData['answer'].toLowerCase()) {
                                   showDialog(
                                     context: context,
@@ -157,7 +158,21 @@ class ExercisePage extends StatelessWidget {
                                             onPressed: () {
                                               Navigator.pop(context);
                                             },
-                                            child: Text('Cek'),
+                                            child: Text('Ulangi'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              Navigator.pushReplacement(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ExercisePage(
+                                                          levelId: levelId + 1),
+                                                ),
+                                              );
+                                            },
+                                            child: Text('Next Level'),
                                           ),
                                         ],
                                       );
@@ -176,7 +191,21 @@ class ExercisePage extends StatelessWidget {
                                             onPressed: () {
                                               Navigator.pop(context);
                                             },
-                                            child: Text('Cek'),
+                                            child: Text('Ulangi'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              Navigator.pushReplacement(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ExercisePage(
+                                                          levelId: levelId + 1),
+                                                ),
+                                              );
+                                            },
+                                            child: Text('Next Level'),
                                           ),
                                         ],
                                       );
